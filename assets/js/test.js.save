@@ -1,0 +1,106 @@
+var net = require('net');
+var express = require('express');
+var storage = require('node-persist');
+var mysql = require('mysql'),
+    mysqlUtilities = require('mysql-utilities');
+
+    var connection = mysql.createConnection({
+        host: 'localhost',
+        user: 'root',
+        password: '11235813',
+        database: 'GazovikDB'
+    });
+
+// Mix-in for Data Access Methods and SQL Autogenerating Methods
+mysqlUtilities.upgrade(connection);
+
+// Mix-in for Introspection Methods
+mysqlUtilities.introspection(connection);
+
+connection.connect();
+
+var client = net.connect(6003, '91.196.6.1');
+var app = express();
+
+// Создаем HTTP-сервер с помощью модуля HTTP, входящего в Node.js.
+// Связываем его с Express и отслеживаем подключения к порту 8580.
+
+var server = require('http').createServer(app).listen(8383);
+var io = require('socket.io').listen(server, {log: true});
+var n = 1;
+io.sockets.on('connection', function (socket) {
+
+client.on('data', function(data) {
+
+    var string = data.toString();
+    var array = string.match(/\w+|"[^"]+"/g);
+
+    var call_id = array[0];
+    var internal_number = array[2];
+    var call_date = array[5]+"/"+array[4];
+    var call_time = array[6]+":"+array[7]+":"+array[8];
+    var duration = array[9]+":"+array[10]+":"+array[11];
+    var call_type = array[12];
+    var dst = array[13];
+    var src = array[16];
+
+    if(call_type === "IR"){
+        socket.emit('message', "Входящий вызов с номера " + src + " на номер " + dst);
+	socket.emit('phoneNumberCheck', internal_number);
+	socket.emit('allData', );
+    }
+
+    if(call_type === "IA"){
+        socket.emit('message', "Разговор с абонентом " + src+ " (внешн."+ dst +" внутр."+internal_number+" ) ");
+	socket.emit('phoneNumberCheck', internal_number);
+	socket.emit('allData', array);
+    }
+
+    if(call_type === "I"){
+        socket.emit('message', "Разговор с абонентом "+src+" (внешн."+ dst +" внутр."+internal_number+" ) завершен");
+	socket.emit('phoneNumberCheck', internal_number);
+	socket.emit('allData', array);
+    }
+
+    if(call_type === "T"){
+        socket.emit('message', "Разговор с абонентом "+src+" (внешн."+ dst +" внутр."+internal_number+" ) завершен");
+	socket.emit('phoneNumberCheck', internal_number);
+	socket.emit('allData', array);
+    }
+
+    }); //client block
+});
+
+client.on('data', function(data) {
+
+    var string = data.toString();
+    var array = string.match(/\w+|"[^"]+"/g);
+
+    console.info(string);
+
+    var call_id = array[0];
+    var internal_number = array[2];
+    var call_date = array[5]+"/"+array[4];
+    var call_time = array[6]+":"+array[7]+":"+array[8];
+    var duration = array[9]+":"+array[10]+":"+array[11];
+    var call_type = array[12];
+    var dst = array[13];
+    var src = array[16];
+
+
+
+    if(call_type === 'O'){
+            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, duration, call_type, dst) ' +
+                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + duration + '", "' + call_type + '", "' + dst + '")';
+            connection.query(sql);
+    }else{
+            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, duration, call_type, dst, src) ' +
+                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + duration + '", "' + call_type + '", "' + dst + '", "' + src + '")';
+            connection.query(sql);
+    }
+
+    }); //client block
+
+client.on('error', function(err) {
+    console.log('error:', err.message);
+});
