@@ -238,7 +238,7 @@ function getContactUser(internal_number){
 
 function getUnansweredCalls(){
     connection.connect(function(err){
-        var sql = "SELECT * FROM  `cdr` inner join `users` on `users`.`phone` = `cdr`.`internal_number` WHERE `cdr`.`unanswered` =  'yes' AND `cdr`.`sent` =  'no' AND `call_time` ='00:00:00' AND `cdr`.`call_type` =  'IR'";
+        var sql = "SELECT * FROM  `cdr` inner join `users` on `users`.`phone` = `cdr`.`internal_number` WHERE `cdr`.`unanswered` =  'yes' AND `cdr`.`sent` =  'no' AND `duration` ='00:00:00' AND `cdr`.`call_type` =  'IR'";
 
         connection.query(sql, function(err, rows, fields) {
             if (err) return console.log(err);

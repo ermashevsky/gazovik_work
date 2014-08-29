@@ -60,6 +60,7 @@ class General_model extends CI_Model {
             $this->db->where("internal_number", $phone);
             $this->db->or_where("unanswered", 'yes');
             $this->db->where("internal_number", $phone);
+            $this->db->where("duration", "00:00:00");
             $this->db->order_by('cdr.id', "DESC");
             $results = $this->db->get();
         } else {
@@ -68,6 +69,7 @@ class General_model extends CI_Model {
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
             $this->db->where("call_type", 'I');
             $this->db->or_where("unanswered", 'yes');
+            $this->db->where("duration", "00:00:00");
             $this->db->order_by('cdr.id', "DESC");
             $results = $this->db->get();
             //$this->db->where("internal_number", $phone);

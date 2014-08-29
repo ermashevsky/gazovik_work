@@ -112,6 +112,7 @@ class General extends CI_Controller {
     }
     
     public function sendMail() {
+        
         $this->load->library('email');
         
         $call_id = $this->input->post('call_id');
@@ -136,11 +137,15 @@ class General extends CI_Controller {
             $config['crlf'] = "\r\n";
             $config['newline'] = "\r\n";
             $config['wordwrap'] = TRUE;
-
+            
+            //$this->load->library('email');
             $this->email->initialize($config);
-        
+            
+            
             $this->email->from($settings->user, 'Автоинформатор');
         }
+        
+        
         
         $this->email->to($email);
         $this->email->subject('Пропущен входящий звонок');
@@ -157,13 +162,18 @@ class General extends CI_Controller {
 //            echo ('Письмо было успешно отправлено!');
 //        }
 
-        echo $this->email->print_debugger();
+        //$this->viewEmailDebug($this->email->print_debugger());
+        //echo $this->email->print_debugger();
     }
     
     function getMailSettings(){
         $this->load->model('general_model');
         $settings = $this->general_model->getMailSettings();
         return $settings;
+    }
+    
+    function viewEmailDebug($debug){
+        echo $debug;
     }
     
     function updateToSendCalls($call_id){
