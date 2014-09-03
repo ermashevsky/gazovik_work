@@ -113,7 +113,7 @@ class General extends CI_Controller {
     
     public function sendMail() {
         
-        $this->load->library('email');
+        //$this->load->library('email');
         
         $call_id = $this->input->post('call_id');
         $internal_number = $this->input->post('internal_number');
@@ -138,7 +138,7 @@ class General extends CI_Controller {
             $config['newline'] = "\r\n";
             $config['wordwrap'] = TRUE;
             
-            //$this->load->library('email');
+            $this->load->library('email',$config);
             $this->email->initialize($config);
             
             
@@ -180,6 +180,15 @@ class General extends CI_Controller {
 
         $this->load->model('general_model');
         $this->general_model->updateSendCalls($call_id);
+    }
+    
+    function getCallHistory(){
+        
+        $call_id = $this->input->post('call_id');
+        $this->load->model('general_model');
+        $data = $this->general_model->getCallHistory($call_id);
+        
+        echo json_encode($data);
     }
 }
 

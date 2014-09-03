@@ -42,21 +42,74 @@ class General_model extends CI_Model {
         switch ($code) {
             case 'IR':
                 return "Входящий неотвеченный";
+            case 'IA':
+                return "Разговор";
             case 'I':
                 return "Входящий отвеченный";
             case 'O':
                 return "Исходящий";
+            case 'IT':
+                return "Перевод звонка";
             case 'T':
                 return "Входящий переведенный";
         }
     }
+    
+    function transCode2($code) {
+        switch ($code) {
+            case 'IR':
+                return "Входящий звонок";
+            case 'IA':
+                return "Разговор";
+            case 'I':
+                return "Входящий отвеченный";
+            case 'O':
+                return "Исходящий";
+            case 'IT':
+                return "Перевод звонка";
+            case 'T':
+                return "Переведенный завершен";
+        }
+    }
+
+    function formatString($call_id, $call_type) {
+
+        if ($call_type === "T") {
+            return " <a href='#' onclick=getCallHistory('" . $call_id . "'); return false;><i class='icon-info-sign'></i></a>";
+        }
+    }
+
+    function getCallHistory($call_id) {
+        $this->db->select('id, call_id, internal_number, call_date, call_time, duration, call_type, dst, src');
+        $this->db->from('cdr');
+        $this->db->where("call_id", $call_id);
+        $results = $this->db->get();
+        
+        $data = array();
+        
+        if (0 < $results->num_rows) {
+            foreach ($results->result() as $row) {
+                $general = new General_model();
+                $general->id = $row->id;
+                $general->internal_number = $row->internal_number;
+                $general->call_date = $row->call_date;
+                $general->call_time = $row->call_time;
+                $general->duration = $row->duration;
+                $general->call_type = $this->transCode2($row->call_type);
+                $general->dst = $row->dst;
+                $general->src = $row->src;
+                $data[$general->id] = $general;
+            }
+        }
+        return $data;
+    }
 
     function getCallDataForTable($phone, $group) {
         if ($group !== 'admin') {
-            $this->db->select('internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
+            $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where("call_type", 'I');
+            $this->db->where_in("call_type", array('I', 'T'));
             $this->db->where("internal_number", $phone);
             $this->db->or_where("unanswered", 'yes');
             $this->db->where("internal_number", $phone);
@@ -64,10 +117,10 @@ class General_model extends CI_Model {
             $this->db->order_by('cdr.id', "DESC");
             $results = $this->db->get();
         } else {
-            $this->db->select('internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
+            $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where("call_type", 'I');
+            $this->db->where_in("call_type", array('I', 'T'));
             $this->db->or_where("unanswered", 'yes');
             $this->db->where("duration", "00:00:00");
             $this->db->order_by('cdr.id', "DESC");
@@ -81,7 +134,9 @@ class General_model extends CI_Model {
             $output = '{ "aaData": [';
             $n = 1;
             foreach ($results->result() as $row) {
-                $output .= '["' . $n++ . '","' . $row->internal_number . '","' . $row->call_date . '","' . $row->call_time . '","' . $row->duration . '","' . $this->transCode($row->call_type) . '","' . $row->src . '","' . $row->dst . '","' . $row->contactName . '"],';
+                if(strlen($row->dst) > 4){
+                $output .= '["' . $n++ . '","' . $row->internal_number . '","' . $row->call_date . '","' . $row->call_time . '","' . $row->duration . '","' . $this->transCode($row->call_type) . '","' . $row->src . '","' . $row->dst . $this->formatString($row->call_id, $row->call_type) . '","' . $row->contactName . '"],';
+                }
             }
             $output = substr_replace($output, "", -1);
             $output .= '] }';
@@ -98,116 +153,115 @@ class General_model extends CI_Model {
         if (0 < $results->num_rows) {
 
             foreach ($results->result() as $row) {
-                return  $row->contactName;
+                return $row->contactName;
             }
         }
     }
-    
-    function getPhoneDeptsRecord($id){
+
+    function getPhoneDeptsRecord($id) {
         $this->db->select('id, external_number, contactName');
         $this->db->from('contactGroup');
-        $this->db->where('id',$id);
-        
+        $this->db->where('id', $id);
+
         $results = $this->db->get();
-        
+
         $data = array();
         if (0 < $results->num_rows) {
 
             foreach ($results->result() as $row) {
                 $general = new General_model();
-                $general -> id = $row -> id;
-                $general -> external_number = $row -> external_number;
-                $general -> contactName = $row -> contactName;
-                $data[$general -> id] = $general;
+                $general->id = $row->id;
+                $general->external_number = $row->external_number;
+                $general->contactName = $row->contactName;
+                $data[$general->id] = $general;
             }
         }
         return $data;
     }
-    
-    function getPhoneDepts(){
+
+    function getPhoneDepts() {
         $this->db->select('id, external_number, contactName');
         $this->db->from('contactGroup');
         $results = $this->db->get();
-        
+
         $data = array();
         if (0 < $results->num_rows) {
 
             foreach ($results->result() as $row) {
                 $general = new General_model();
-                $general -> id = $row -> id;
-                $general -> external_number = $row -> external_number;
-                $general -> contactName = $row -> contactName;
-                $data[$general -> id] = $general;
+                $general->id = $row->id;
+                $general->external_number = $row->external_number;
+                $general->contactName = $row->contactName;
+                $data[$general->id] = $general;
             }
         }
         return $data;
     }
-    
-    function getMailSettings(){
+
+    function getMailSettings() {
         $this->db->select('*');
         $this->db->from('mailsettings');
         $results = $this->db->get();
-        
+
         $data = array();
         if (0 < $results->num_rows) {
 
             foreach ($results->result() as $row) {
                 $general = new General_model();
-                $general -> id = $row -> id;
-                $general -> smtp_host = $row -> smtp_host;
-                $general -> smtp_port = $row -> smtp_port;
-                $general -> smtp_user = $row -> smtp_user;
-                $general -> smtp_pass = $row -> smtp_pass;
-                $general -> smtp_timeout = $row -> smtp_timeout;
-                
-                $data[$general -> id] = $general;
+                $general->id = $row->id;
+                $general->smtp_host = $row->smtp_host;
+                $general->smtp_port = $row->smtp_port;
+                $general->smtp_user = $row->smtp_user;
+                $general->smtp_pass = $row->smtp_pass;
+                $general->smtp_timeout = $row->smtp_timeout;
+
+                $data[$general->id] = $general;
             }
         }
         return $data;
     }
-    
-    function updateSmtpParameters($id,$smtp_host,$smtp_port,$smtp_user,$smtp_pass,$smtp_timeout){
+
+    function updateSmtpParameters($id, $smtp_host, $smtp_port, $smtp_user, $smtp_pass, $smtp_timeout) {
         $data = array(
-               'smtp_host' => $smtp_host,
-               'smtp_port' => $smtp_port,
-               'smtp_user' => $smtp_user,
-               'smtp_pass' => $smtp_pass,
-               'smtp_timeout' => $smtp_timeout
-            
-            );
+            'smtp_host' => $smtp_host,
+            'smtp_port' => $smtp_port,
+            'smtp_user' => $smtp_user,
+            'smtp_pass' => $smtp_pass,
+            'smtp_timeout' => $smtp_timeout
+        );
 
         $this->db->where('id', $id);
         $this->db->update('mailsettings', $data);
     }
-    
-    function insertNewPhoneDeptsData($additional_data){
-        $this->db->insert('contactGroup', $additional_data); 
+
+    function insertNewPhoneDeptsData($additional_data) {
+        $this->db->insert('contactGroup', $additional_data);
     }
-    
-    function deletePhoneDeptsRecord($id){
+
+    function deletePhoneDeptsRecord($id) {
         $this->db->delete('contactGroup', array('id' => $id));
     }
-    
-    function deleteUserRecord($id){
+
+    function deleteUserRecord($id) {
         $this->db->delete('users', array('id' => $id));
         $this->db->delete('users_groups', array('user_id' => $id));
     }
-    
-    function updatePhoneDeptsRecord($id, $external_number, $contactName){
+
+    function updatePhoneDeptsRecord($id, $external_number, $contactName) {
         $data = array(
-               'external_number' => $external_number,
-               'contactName' => $contactName
-            );
+            'external_number' => $external_number,
+            'contactName' => $contactName
+        );
 
         $this->db->where('id', $id);
-        $this->db->update('contactGroup', $data); 
+        $this->db->update('contactGroup', $data);
     }
-    
-    function updateSendCalls($call_id){
-        
+
+    function updateSendCalls($call_id) {
+
         $this->db->where('call_id', $call_id);
         $this->db->set("sent", "yes");
-        $this->db->update('cdr'); 
+        $this->db->update('cdr');
     }
 
 }
