@@ -99,7 +99,7 @@
     </head>
     <script>
         $(document).ready(function() {
-
+            
             var url = window.location.href;
             // Will only work if string in href matches with location
 
@@ -164,7 +164,7 @@
 
             var socket = io.connect('http://gaz.dialog64.ru:8383');
             socket.on('getUnansweredCalls', function(result) {
-                console.info("Данные:"+result);
+                console.info("Данные:" + result);
 //                $.each(result, function(i,val){
 //                    console.info(result[i].src);
 //                });

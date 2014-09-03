@@ -111,9 +111,67 @@ class General extends CI_Controller {
         
     }
     
+//    public function sendMail() {
+//        
+//        $this->load->library('email');
+//        
+//        $call_id = $this->input->post('call_id');
+//        $internal_number = $this->input->post('internal_number');
+//        $call_date = $this->input->post('call_date');
+//        $call_time = $this->input->post('call_time');
+//        $duration = $this->input->post('duration');
+//        $call_type = $this->input->post('call_type');
+//        $dst = $this->input->post('dst');
+//        $src = $this->input->post('src');
+//        $email = $this->input->post('email');
+//        
+//        $config = array();
+//        
+//        foreach($this->getMailSettings() as $settings){
+//            $config['protocol'] = 'smtp';
+//            $config['smtp_host'] = $settings->smtp_host;
+//            $config['smtp_user'] = $settings->smtp_user;
+//            $config['smtp_pass'] = $settings->smtp_pass;
+//            $config['smtp_port'] = $settings->smtp_port;
+//            $config['smtp_timeout'] = $settings->smtp_timeout;
+//
+//            $config['charset'] = 'utf-8';
+//            $config['crlf'] = "\r\n";
+//            $config['newline'] = "\r\n";
+//            $config['wordwrap'] = TRUE;
+//            $config['mailtype'] = 'html';
+//            
+//            //$this->load->library('email',$config);
+//            $this->email->initialize($config);
+//            
+//            
+//            $this->email->from($settings->user, 'Автоинформатор');
+//        }
+//        
+//        
+//        
+//        $this->email->to($email);
+//        $this->email->subject('Пропущен входящий звонок');
+//        $message = "Вам звонили ".$call_date." в ".$call_time." c номера ".$src." на номер ".$dst." (внутр.номер ".$internal_number.")";
+//        $this->email->message('Здравствуйте! Вы пропустили входящий звонок.'.$message." И поэтому Вам на адрес ".$email." пришло это письмо.");
+//        
+//        $this->email->send();
+//        
+//        $this->updateToSendCalls($call_id);
+//                
+////        if (!$this->email->send()) {
+////            echo ('Не удалось выполнить отправку письма!');
+////        } else {
+////            echo ('Письмо было успешно отправлено!');
+////        }
+//
+//        //$this->viewEmailDebug($this->email->print_debugger());
+//        //echo $this->email->print_debugger();
+//    }
+    
     public function sendMail() {
         
-        //$this->load->library('email');
+        $this->load->library('PHPMailer');
         
         $call_id = $this->input->post('call_id');
         $internal_number = $this->input->post('internal_number');
@@ -125,45 +183,34 @@ class General extends CI_Controller {
         $src = $this->input->post('src');
         $email = $this->input->post('email');
         
+        $mail = new PHPMailer(true);
+        
+        
+        
         foreach($this->getMailSettings() as $settings){
-            $config['protocol'] = 'smtp';
-            $config['smtp_host'] = $settings->smtp_host;
-            $config['smtp_user'] = $settings->smtp_user;
-            $config['smtp_pass'] = $settings->smtp_pass;
-            $config['smtp_port'] = $settings->smtp_port;
-            $config['smtp_timeout'] = $settings->smtp_timeout;
-
-            $config['charset'] = 'utf-8';
-            $config['crlf'] = "\r\n";
-            $config['newline'] = "\r\n";
-            $config['wordwrap'] = TRUE;
+            $mail->IsSMTP(); // we are going to use SMTP
+            $mail->SMTPAuth   = true; // enabled SMTP authentication
+            $mail->SMTPSecure = "ssl";  // prefix for secure protocol to connect to the server
             
-            $this->load->library('email',$config);
-            $this->email->initialize($config);
-            
-            
-            $this->email->from($settings->user, 'Автоинформатор');
+            $mail->Host = $settings->smtp_host;
+            $mail->Port = $settings->smtp_port;
+            $mail->Username = $settings->smtp_user;
+            $mail->Password = $settings->smtp_pass;
+            $mail->CharSet = 'utf-8';
+            $mail->Subject = 'Пропущен входящий звонок';
+            $mail->SetFrom($settings->smtp_user, 'Автоинформатор');
         }
         
         
         
-        $this->email->to($email);
-        $this->email->subject('Пропущен входящий звонок');
+        $mail->AddAddress($email);
         $message = "Вам звонили ".$call_date." в ".$call_time." c номера ".$src." на номер ".$dst." (внутр.номер ".$internal_number.")";
-        $this->email->message('Здравствуйте! Вы пропустили входящий звонок.'.$message." И поэтому Вам на адрес ".$email." пришло это письмо.");
+        $mail->MsgHTML('Здравствуйте! Вы пропустили входящий звонок.'.$message." И поэтому Вам на адрес ".$email." пришло это письмо.");
         
-        $this->email->send();
+        $mail->Send();
         
         $this->updateToSendCalls($call_id);
-                
-//        if (!$this->email->send()) {
-//            echo ('Не удалось выполнить отправку письма!');
-//        } else {
-//            echo ('Письмо было успешно отправлено!');
-//        }
 
-        //$this->viewEmailDebug($this->email->print_debugger());
-        //echo $this->email->print_debugger();
     }
     
     function getMailSettings(){
