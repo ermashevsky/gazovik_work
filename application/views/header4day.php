@@ -192,7 +192,7 @@
                         "name": "group", "value": '<?php echo $group->name; ?>'
                     });
                 },
-                "sAjaxSource": '<?= site_url('general/getCallData'); ?>',
+                "sAjaxSource": '<?= site_url('general/getCallDataForDay'); ?>',
                 "sPaginationType": "full_numbers",
                 "oLanguage": {
                     "sUrl": "/assets/js/dataTables.russian.txt"
@@ -201,9 +201,16 @@
                     $('td:eq(6)', nRow).html('<a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + aData[6] + '">' +
                             aData[6] + '</a>');
                     switch (aData[5]) {
-                        case 'Входящий неотвеченный':
-                            $(nRow).css('background-color', '#eed3d7');
+                        case 'Входящий звонок':
+                            $(nRow).css('background-color', 'rgb(217, 237, 247)');
                             break;
+                        case 'Разговор':
+                            $(nRow).css('background-color', 'rgb(252, 248, 227)');
+                            break;
+                        case 'Звонок завершен':
+                            $(nRow).css('background-color', 'rgb(223, 240, 216)');
+                            break;  
+                          
                     }
                     return nRow;
                 },

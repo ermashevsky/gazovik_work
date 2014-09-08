@@ -71,6 +71,23 @@ class General_model extends CI_Model {
                 return "Переведенный завершен";
         }
     }
+    
+    function transCode3($code) {
+        switch ($code) {
+            case 'IR':
+                return "Входящий звонок";
+            case 'IA':
+                return "Разговор";
+            case 'I':
+                return "Звонок завершен";
+            case 'O':
+                return "Исходящий";
+            case 'IT':
+                return "Перевод звонка";
+            case 'T':
+                return "Входящий переведенный";
+        }
+    }
 
     function formatString($call_id, $call_type) {
 
@@ -136,6 +153,43 @@ class General_model extends CI_Model {
             foreach ($results->result() as $row) {
                 if(strlen($row->dst) > 4){
                 $output .= '["' . $n++ . '","' . $row->internal_number . '","' . $row->call_date . '","' . $row->call_time . '","' . $row->duration . '","' . $this->transCode($row->call_type) . '","' . $row->src . '","' . $row->dst . $this->formatString($row->call_id, $row->call_type) . '","' . $row->contactName . '"],';
+                }
+            }
+            $output = substr_replace($output, "", -1);
+            $output .= '] }';
+        }
+        echo $output;
+    }
+    
+    function getCallDataForDay($phone, $group) {
+        if ($group !== 'admin') {
+            $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, contactName');
+            $this->db->from('cdr');
+            $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
+            $this->db->where_in("call_type", array('IR','IA','I'));
+            $this->db->where("internal_number", $phone);
+            $this->db->where("call_date", date('d/m/Y',now()));
+            $this->db->order_by('cdr.id', "DESC");
+            $results = $this->db->get();
+        } else {
+            $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, contactName');
+            $this->db->from('cdr');
+            $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
+            $this->db->where_in("call_type", array('IR','IA','I'));
+            $this->db->where("call_date", date('d/m/Y',now()));
+            $this->db->order_by('cdr.id', "DESC");
+            $results = $this->db->get();
+            //$this->db->where("internal_number", $phone);
+        }
+        //$this->db->order_by('id DESC');
+
+
+        if (0 < $results->num_rows) {
+            $output = '{ "aaData": [';
+            $n = 1;
+            foreach ($results->result() as $row) {
+                if(strlen($row->dst) > 4){
+                $output .= '["' . $n++ . '","' . $row->internal_number . '","' . $row->call_date . '","' . $row->call_time . '","' . $row->duration . '","' . $this->transCode3($row->call_type) . '","' . $row->src . '","' . $row->dst . $this->formatString($row->call_id, $row->call_type) . '","' . $row->contactName . '"],';
                 }
             }
             $output = substr_replace($output, "", -1);

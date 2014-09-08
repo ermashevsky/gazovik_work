@@ -609,6 +609,7 @@
                         <ul class="nav">
                             <li><a>Здравствуйте, <?php echo $user->username; ?></a></li>
                             <li><a href="/"><i class="icon-home icon-white"> </i>Звонки онлайн</a></li>
+                            <li><a href="/general/callForDay"><i class="icon-calendar icon-white"> </i>Звонки за сегодня</a></li>
                             <li><a href="/general/statistic"><i class="icon-list"> </i>Статистика</a></li>
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-wrench icon-white"> </i>Админка<b class="caret"></b></a>

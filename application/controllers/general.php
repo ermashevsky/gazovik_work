@@ -62,6 +62,29 @@ class General extends CI_Controller {
             $this->load->view('statistic');
         }
     }
+    
+    public function callForDay() {
+
+        $data['title'] = 'Звонки за сегодня';
+
+        if (!$this->ion_auth->logged_in()) {
+            redirect('auth/login', 'refresh');
+        } else {
+
+            $data['user'] = $this->ion_auth->user($this->session->userdata('user_id'))->row();
+            $data['group'] = $this->ion_auth->get_users_groups($this->session->userdata('user_id'))->row();
+
+            $this->load->view('header4day', $data);
+            $this->load->view('statistic4day');
+        }
+    }
+    
+    public function getCallDataForDay(){
+        $phone = $this->input->post('phone');
+        $group = $this->input->post('group');
+        $this->load->model('general_model');
+        return $this->general_model->getCallDataForDay($phone, $group);
+    }
 
     public function getCallData() {
         $phone = $this->input->post('phone');

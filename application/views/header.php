@@ -99,7 +99,7 @@
     </head>
     <script>
         $(document).ready(function() {
-            
+
             var url = window.location.href;
             // Will only work if string in href matches with location
 
@@ -307,6 +307,7 @@
                         <ul class="nav">
                             <li><a>Здравствуйте, <?php echo $user->username; ?></a></li>   
                             <li><a href="/"><i class="icon-home icon-white"> </i>Звонки онлайн</a></li>
+                            <li><a href="/general/callForDay"><i class="icon-calendar icon-white"> </i>Звонки за сегодня</a></li>
                             <li><a href="/general/statistic"><i class="icon-list"> </i>Статистика</a></li>
                             <?php
                             if ($this->ion_auth->is_admin()) {
