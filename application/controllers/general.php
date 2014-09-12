@@ -62,7 +62,7 @@ class General extends CI_Controller {
             $this->load->view('statistic');
         }
     }
-    
+
     public function callForDay() {
 
         $data['title'] = 'Звонки за сегодня';
@@ -78,12 +78,25 @@ class General extends CI_Controller {
             $this->load->view('statistic4day');
         }
     }
-    
-    public function getCallDataForDay(){
+
+    public function getCallDataForDay() {
         $phone = $this->input->post('phone');
         $group = $this->input->post('group');
         $this->load->model('general_model');
         return $this->general_model->getCallDataForDay($phone, $group);
+    }
+
+    function getAllStatisticData() {
+        $this->load->model('general_model');
+        $data = $this->general_model->getAllStatisticData();
+        $this->load->helper('csv');
+        echo array_to_csv($data, 'callCenterStatBackup_'.date('d-m-Y-H:i:s').'.csv');
+    }
+    
+    function deleteStatisticData(){
+        $this->load->model('general_model');
+        $data = $this->general_model->deleteStatisticData();
+        echo json_encode($data);
     }
 
     public function getCallData() {
@@ -114,88 +127,28 @@ class General extends CI_Controller {
         $this->general_model->deleteUserRecord($id);
         $this->session->set_flashdata('message', "Пользователь удален");
     }
-    
-    function getPhoneDeptsRecord(){
+
+    function getPhoneDeptsRecord() {
         $id = $this->input->post('id');
         $this->load->model('general_model');
         $data = $this->general_model->getPhoneDeptsRecord($id);
         echo json_encode($data);
-        
     }
-    
-    function updatePhoneDeptsRecord(){
-        
+
+    function updatePhoneDeptsRecord() {
+
         $id = $this->input->post('id');
         $external_number = $this->input->post('edit_external_number');
         $contactName = $this->input->post('edit_contactName');
-        
+
         $this->load->model('general_model');
         $this->general_model->updatePhoneDeptsRecord($id, $external_number, $contactName);
-        
     }
-    
-//    public function sendMail() {
-//        
-//        $this->load->library('email');
-//        
-//        $call_id = $this->input->post('call_id');
-//        $internal_number = $this->input->post('internal_number');
-//        $call_date = $this->input->post('call_date');
-//        $call_time = $this->input->post('call_time');
-//        $duration = $this->input->post('duration');
-//        $call_type = $this->input->post('call_type');
-//        $dst = $this->input->post('dst');
-//        $src = $this->input->post('src');
-//        $email = $this->input->post('email');
-//        
-//        $config = array();
-//        
-//        foreach($this->getMailSettings() as $settings){
-//            $config['protocol'] = 'smtp';
-//            $config['smtp_host'] = $settings->smtp_host;
-//            $config['smtp_user'] = $settings->smtp_user;
-//            $config['smtp_pass'] = $settings->smtp_pass;
-//            $config['smtp_port'] = $settings->smtp_port;
-//            $config['smtp_timeout'] = $settings->smtp_timeout;
-//
-//            $config['charset'] = 'utf-8';
-//            $config['crlf'] = "\r\n";
-//            $config['newline'] = "\r\n";
-//            $config['wordwrap'] = TRUE;
-//            $config['mailtype'] = 'html';
-//            
-//            //$this->load->library('email',$config);
-//            $this->email->initialize($config);
-//            
-//            
-//            $this->email->from($settings->user, 'Автоинформатор');
-//        }
-//        
-//        
-//        
-//        $this->email->to($email);
-//        $this->email->subject('Пропущен входящий звонок');
-//        $message = "Вам звонили ".$call_date." в ".$call_time." c номера ".$src." на номер ".$dst." (внутр.номер ".$internal_number.")";
-//        $this->email->message('Здравствуйте! Вы пропустили входящий звонок.'.$message." И поэтому Вам на адрес ".$email." пришло это письмо.");
-//        
-//        $this->email->send();
-//        
-//        $this->updateToSendCalls($call_id);
-//                
-////        if (!$this->email->send()) {
-////            echo ('Не удалось выполнить отправку письма!');
-////        } else {
-////            echo ('Письмо было успешно отправлено!');
-////        }
-//
-//        //$this->viewEmailDebug($this->email->print_debugger());
-//        //echo $this->email->print_debugger();
-//    }
-    
+
     public function sendMail() {
-        
+
         $this->load->library('PHPMailer');
-        
+
         $call_id = $this->input->post('call_id');
         $internal_number = $this->input->post('internal_number');
         $call_date = $this->input->post('call_date');
@@ -205,16 +158,16 @@ class General extends CI_Controller {
         $dst = $this->input->post('dst');
         $src = $this->input->post('src');
         $email = $this->input->post('email');
-        
+
         $mail = new PHPMailer(true);
-        
-        
-        
-        foreach($this->getMailSettings() as $settings){
+
+
+
+        foreach ($this->getMailSettings() as $settings) {
             $mail->IsSMTP(); // we are going to use SMTP
-            $mail->SMTPAuth   = true; // enabled SMTP authentication
+            $mail->SMTPAuth = true; // enabled SMTP authentication
             $mail->SMTPSecure = "ssl";  // prefix for secure protocol to connect to the server
-            
+
             $mail->Host = $settings->smtp_host;
             $mail->Port = $settings->smtp_port;
             $mail->Username = $settings->smtp_user;
@@ -223,43 +176,43 @@ class General extends CI_Controller {
             $mail->Subject = 'Пропущен входящий звонок';
             $mail->SetFrom($settings->smtp_user, 'Автоинформатор');
         }
-        
-        
-        
-        $mail->AddAddress($email);
-        $message = "Вам звонили ".$call_date." в ".$call_time." c номера ".$src." на номер ".$dst." (внутр.номер ".$internal_number.")";
-        $mail->MsgHTML('Здравствуйте! Вы пропустили входящий звонок.'.$message." И поэтому Вам на адрес ".$email." пришло это письмо.");
-        
-        $mail->Send();
-        
-        $this->updateToSendCalls($call_id);
 
+
+
+        $mail->AddAddress($email);
+        $message = "Вам звонили " . $call_date . " в " . $call_time . " c номера " . $src . " на номер " . $dst . " (внутр.номер " . $internal_number . ")";
+        $mail->MsgHTML('Здравствуйте! Вы пропустили входящий звонок.' . $message . " И поэтому Вам на адрес " . $email . " пришло это письмо.");
+
+        $mail->Send();
+
+        $this->updateToSendCalls($call_id);
     }
-    
-    function getMailSettings(){
+
+    function getMailSettings() {
         $this->load->model('general_model');
         $settings = $this->general_model->getMailSettings();
         return $settings;
     }
-    
-    function viewEmailDebug($debug){
+
+    function viewEmailDebug($debug) {
         echo $debug;
     }
-    
-    function updateToSendCalls($call_id){
+
+    function updateToSendCalls($call_id) {
 
         $this->load->model('general_model');
         $this->general_model->updateSendCalls($call_id);
     }
-    
-    function getCallHistory(){
-        
+
+    function getCallHistory() {
+
         $call_id = $this->input->post('call_id');
         $this->load->model('general_model');
         $data = $this->general_model->getCallHistory($call_id);
-        
+
         echo json_encode($data);
     }
+
 }
 
 /* End of file welcome.php */

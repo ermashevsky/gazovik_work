@@ -10,7 +10,7 @@
         <script src="/assets/js/bootstrap-button.js"></script>
         <script src="/assets/js/bootstrap-fileupload.js"></script>
         <script src="/assets/js/bootstrap-notify.js"></script>
-        <script src="/assets/js/bootbox.min.js"></script>
+        <script src="/assets/js/bootbox.js"></script>
         <script src="/assets/js/bootstrap-progressbar.js"></script>
         <script src="/assets/js/bootstrap-datepicker.js"></script>
         <script src="/assets/js/locales/bootstrap-datepicker.ru.js"></script>
@@ -87,7 +87,7 @@
             }
 
             #ToolTables_cdrTable2_0{
-
+                margin-left:5px;
             }
 
             .tablesorter {
@@ -153,7 +153,44 @@
             }, 'json');
         }
 
+
+
         $(document).ready(function() {
+
+
+            function deleteStatisticData() {
+                $.post('<?php echo site_url('/general/deleteStatisticData'); ?>',
+                function(data) {
+                    console.info(data);
+                });
+            }
+
+            function getAllStatisticData() {
+
+                bootbox.dialog({
+                    message: "<center><strong style='color:red;'>Вся статистика за период будет удалена.<br/> Вы действительно хотите очистить статистику?</strong></center>",
+                    title: "Очистка статистики",
+                    buttons: {
+                        success: {
+                            label: "Да",
+                            className: "btn-success btn-small",
+                            callback: function() {
+                                window.open('<?php echo site_url('/general/getAllStatisticData'); ?>');
+                                deleteStatisticData();
+                            }
+                        },
+                        danger: {
+                            label: "Нет",
+                            className: "btn-danger btn-small",
+                            callback: function() {
+                                bootbox.hideAll();
+
+                            }
+                        }
+                    }
+                });
+
+            }
 
             var url = window.location.href;
 
@@ -211,10 +248,23 @@
                 "tableTools": {
                     "sSwfPath": "/assets/swf/copy_csv_xls.swf",
                     "aButtons": [
+                        <?php if($this -> ion_auth -> is_admin()): ?>
                         {
-                            "sExtends": "csv",
-                            "sButtonText": "Сохранить в CSV",
-                            "sButtonClass": "btn btn-success btn-small pull-right"
+                            "sExtends": "text",
+                            "sButtonText": "<i class='icon-trash'> </i>Очистить статистику",
+                            "sButtonClass": "btn btn-danger btn-small pull-right",
+                            "fnClick": function(nButton, oConfig, oFlash) {
+                                //delete stuff comes here 
+                                getAllStatisticData();
+                            }
+                        },
+                         <?php endif; ?>
+                        {
+                            "sExtends": "xls",
+                            "sButtonText": "<i class='icon-arrow-down'> </i>Сохранить в CSV",
+                            "sButtonClass": "btn btn-success btn-small pull-right",
+                            "sCharSet": "UTF16LE",
+                            "sFieldSeperator": ";"
                         }
                     ]
                 }

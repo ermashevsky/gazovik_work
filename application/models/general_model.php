@@ -161,6 +161,45 @@ class General_model extends CI_Model {
         echo $output;
     }
     
+    function getAllStatisticData(){
+            $this->db->select('cdr.id, call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
+            $this->db->from('cdr');
+            $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
+            $this->db->where_in("call_type", array('I', 'T'));
+            $this->db->or_where("unanswered", 'yes');
+            $this->db->where("duration", "00:00:00");
+            $this->db->order_by('cdr.id', "DESC");
+            $results = $this->db->get();
+            $data = array();
+            $general = array();
+            
+        if (0 < $results->num_rows) {
+            foreach ($results->result() as $row) {
+                
+                $general['id'] = $row->id;
+                $general['call_id'] = $row->call_id;
+                $general['internal_number'] = $row->internal_number;
+                $general['call_date'] = $row->call_date;
+                $general['call_time'] = $row->call_time;
+                $general['duration'] = $row->duration;
+                $general['call_type'] = $this->transCode2($row->call_type);
+                $general['dst'] = $row->dst;
+                $general['src'] = $row->src;
+                $general['contactName'] = $row->contactName;
+                $data[$general['id']] = $general;
+            }
+        }
+        return $data;
+    }
+    
+    function deleteStatisticData(){
+        
+        
+        $this->db->delete('cdr');
+        $this->db->where_not_in('id', date("d/m/Y",  now()));
+        return $this->db->affected_rows();
+    }
+    
     function getCallDataForDay($phone, $group) {
         if ($group !== 'admin') {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, contactName');
