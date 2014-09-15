@@ -194,10 +194,9 @@ class General_model extends CI_Model {
     
     function deleteStatisticData(){
         
-        
+        $this->db->where_not_in('call_date', date("d/m/Y",  now()));
         $this->db->delete('cdr');
-        $this->db->where_not_in('id', date("d/m/Y",  now()));
-        return $this->db->affected_rows();
+        
     }
     
     function getCallDataForDay($phone, $group) {
