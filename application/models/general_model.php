@@ -94,6 +94,9 @@ class General_model extends CI_Model {
         if ($call_type === "T") {
             return " <a href='#' onclick=getCallHistory('" . $call_id . "'); return false;><i class='icon-info-sign'></i></a>";
         }
+        if ($call_type === "IT") {
+            return " <a href='#' onclick=getCallHistory('" . $call_id . "'); return false;><i class='icon-info-sign' style='color:green;'></i></a>";
+        }
     }
 
     function getCallHistory($call_id) {
@@ -126,7 +129,7 @@ class General_model extends CI_Model {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('I', 'T'));
+            $this->db->where_in("call_type", array('I', 'T', 'IT'));
             $this->db->where("internal_number", $phone);
             $this->db->or_where("unanswered", 'yes');
             $this->db->where("internal_number", $phone);
