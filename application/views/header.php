@@ -98,21 +98,20 @@
         </style>
     </head>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             var url = window.location.href;
             // Will only work if string in href matches with location
 
             // Will also work for relative and absolute hrefs
-            $('ul.nav li a').filter(function() {
+            $('ul.nav li a').filter(function () {
                 return this.href === url;
             }).addClass('better-active');
-
             var select = document.querySelector('#call_type');
             if (localStorage.selectedIndex !== undefined) {
                 select.selectedIndex = localStorage.selectedIndex;
             }
-            select.onchange = function() {
+            select.onchange = function () {
                 localStorage.selectedIndex = this.selectedIndex;
             }
 
@@ -120,7 +119,6 @@
 
             $("#phoneNumber").val('<?php echo $user->phone; ?>');
             $("#group").val('<?php echo $group->name; ?>');
-
             //$("#Content").niceScroll({cursorcolor:"#3a87ad"});
             $("#cdrTableBlock").niceScroll({cursorcolor: "#3a87ad"});
             function notify(message) {
@@ -153,36 +151,44 @@
 
             function getContactGroup(dst) {
                 $.post('<?php echo site_url('/general/getContactGroup'); ?>', {'external_number': dst},
-                function(data) {
-                    //return data;
-                    console.info("Write");
-                    console.info(data);
-                    $("tr> td#" + dst).append(data);
+                function (data) {
+                    if (data !== null) {
+                        $("tr> td:empty." + dst).text(data);
+                    }
                 }, 'json');
             }
 
 
             var socket = io.connect('http://gaz.dialog64.ru:8383');
-            socket.on('getUnansweredCalls', function(result) {
+            socket.on('getUnansweredCalls', function (result) {
                 console.info("Данные:" + result);
 //                $.each(result, function(i,val){
 //                    console.info(result[i].src);
 //                });
             });
-            socket.on('phoneNumberCheck', function(result) {
-
-                if ($("#group").val() === 'members') {
-                    if (result === $("#phoneNumber").val()) {
-
-                        socket.on('allData', function(data) {
+            var numberCall;
+            socket.on('phoneNumberCheck', function (result) {
+                
+                console.info("New Value =====> "+ result);
+                
+                numberCall = result;
+                
+                console.info("Number Value =====> "+ numberCall);
+            });
+            
+                socket.on('allData', function (data) {
+                        console.info("Number Call Value Before If Condition Block ===> "+ numberCall);
+                        
+                        if (numberCall === $("#phoneNumber").val()) {
+                        if ($("#group").val() === 'members') {
+                            console.info("Number Call Value After If Condition Block ===> " + numberCall);
 
                             var selected_val = $('#call_type').val();
-
                             if (selected_val === 'IR') {
                                 if (data.call_type === "IR") {
                                     getContactGroup(data.dst);
                                     var row = $('<tr><td></td><td>Не определен</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>Отсутствует</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                            data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number + '');
+                                            data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number + '');
                                     row.css('background-color', "#d9edf7");
                                 }
                             }
@@ -191,7 +197,7 @@
                                 if (data.call_type === "IA") {
                                     getContactGroup(data.dst);
                                     var row = $('<tr><td></td><td>' + data.internal_number + '</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>Отсутствует</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                            data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number + '');
+                                            data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number + '');
                                     row.css('background-color', "#fcf8e3");
                                 }
                             }
@@ -199,7 +205,7 @@
                                 if (data.call_type === "I") {
                                     getContactGroup(data.dst);
                                     var row = $('<tr><td></td><td>' + data.internal_number + '</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>' + data.duration + '</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                            data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number + '');
+                                            data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number + '');
                                     row.css('background-color', "#dff0d8");
                                 }
                             }
@@ -208,43 +214,41 @@
                                 if (data.call_type === "IR") {
                                     getContactGroup(data.dst);
                                     var row = $('<tr><td></td><td>Не определен</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>Отсутствует</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                            data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number + '');
+                                            data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number + '');
                                     row.css('background-color', "#d9edf7");
                                 }
 
                                 if (data.call_type === "IA") {
                                     getContactGroup(data.dst);
                                     var row = $('<tr><td></td><td>' + data.internal_number + '</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>Отсутствует</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                            data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number);
+                                            data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number);
                                     row.css('background-color', "#fcf8e3");
                                 }
 
                                 if (data.call_type === "I") {
                                     getContactGroup(data.dst);
                                     var row = $('<tr><td></td><td>' + data.internal_number + '</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>' + data.duration + '</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                            data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number);
+                                            data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable' + data.internal_number);
                                     row.css('background-color', "#dff0d8");
                                 }
                             }
-                        });
+                        }
                     }
-                }
-
-            });
-            if ($("#group").val() === 'admin') {
-
-                socket.on('message', function(data) {
                 });
 
-                socket.on('allData', function(data) {
+            
+            if ($("#group").val() === 'admin') {
+
+                socket.on('message', function (data) {
+                });
+                socket.on('allData', function (data) {
 
                     var selected_val = $('#call_type').val();
-
                     if (selected_val === 'IR') {
                         if (data.call_type === "IR") {
                             getContactGroup(data.dst);
                             var row = $('<tr><td></td><td>Не определен</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>Отсутствует</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                    data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
+                                    data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
                             row.css('background-color', "#d9edf7");
                         }
                     }
@@ -253,7 +257,7 @@
                         if (data.call_type === "IA") {
                             getContactGroup(data.dst);
                             var row = $('<tr><td></td><td>' + data.internal_number + '</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>Отсутствует</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                    data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
+                                    data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
                             row.css('background-color', "#fcf8e3");
                         }
                     }
@@ -261,7 +265,7 @@
                         if (data.call_type === "I") {
                             getContactGroup(data.dst);
                             var row = $('<tr><td></td><td>' + data.internal_number + '</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>' + data.duration + '</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                    data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
+                                    data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
                             row.css('background-color', "#dff0d8");
                         }
                     }
@@ -270,21 +274,21 @@
                         if (data.call_type === "IR") {
                             getContactGroup(data.dst);
                             var row = $('<tr><td></td><td>Не определен</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>Отсутствует</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                    data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
+                                    data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
                             row.css('background-color', "#d9edf7");
                         }
 
                         if (data.call_type === "IA") {
                             getContactGroup(data.dst);
                             var row = $('<tr><td></td><td>' + data.internal_number + '</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>Отсутствует</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                    data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
+                                    data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
                             row.css('background-color', "#fcf8e3");
                         }
 
                         if (data.call_type === "I") {
                             getContactGroup(data.dst);
                             var row = $('<tr><td></td><td>' + data.internal_number + '</td><td>' + data.call_date + '</td><td>' + data.call_time + '</td><td>' + data.duration + '</td><td>' + translateCallCodes(data.call_type) + '</td><td><a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + data.src + '" target="iframeVTiger">' +
-                                    data.src + '</a></td><td>' + data.dst + '</td><td id="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
+                                    data.src + '</a></td><td>' + data.dst + '</td><td class="' + data.dst + '"></td></tr>').prependTo('#cdrTable');
                             row.css('background-color', "#dff0d8");
                         }
                     }
