@@ -241,6 +241,10 @@
                         case 'Входящий неотвеченный':
                             $(nRow).css('background-color', '#eed3d7');
                             break;
+                        case 'Исходящий':
+                            $('td:eq(7)', nRow).html('<a href="http://192.168.1.4/vtigercrm/index.php?action=UnifiedSearch&module=Home&phone=' + aData[7] + '">' +
+                            aData[7] + '</a>');
+                            break;
                     }
                     return nRow;
                 },
@@ -303,7 +307,8 @@
                                         <li><a href="/auth/phoneDepts"><i class="icon-tasks icon-white"> </i>Телефонные номера</a></li>
                                         <li><a href="/auth/mailsettings"><i class="icon-envelope"> </i>Настройки SMTP сервера</a></li>
                                     </ul>
-                                </li>          
+                                </li>
+                                <li><a href="#" id="restartNodeServer"><i class="icon-repeat"> </i>Перезапуск службы</a></li>
                             <?php } ?>
                             <li class="pull-right"><a href="/auth/logout"><i class="icon-arrow-right icon-white"> </i>Выход</a></li>
 

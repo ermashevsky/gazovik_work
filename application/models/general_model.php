@@ -13,6 +13,7 @@
  */
 defined('BASEPATH') OR exit('No direct script access allowed');
 ini_set('display_errors', 1);
+ini_set ('memory_limit' , '2048M');
 error_reporting(E_ALL);
 
 /**
@@ -123,26 +124,31 @@ class General_model extends CI_Model {
         }
         return $data;
     }
-
+    
+    //Общая статистика
     function getCallDataForTable($phone, $group) {
         if ($group !== 'admin') {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('I', 'T', 'IT'));
+            $this->db->where_in("call_type", array('I', 'T', 'IT','O'));
             $this->db->where("internal_number", $phone);
             $this->db->or_where("unanswered", 'yes');
             $this->db->where("internal_number", $phone);
             $this->db->where("duration", "00:00:00");
+            $this->db->group_by('call_id');
+            $this->db->group_by('call_type');
             $this->db->order_by('cdr.id', "DESC");
             $results = $this->db->get();
         } else {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('I', 'T'));
+            $this->db->where_in("call_type", array('I', 'T', 'O'));
             $this->db->or_where("unanswered", 'yes');
             $this->db->where("duration", "00:00:00");
+            $this->db->group_by('call_id');
+            $this->db->group_by('call_type');
             $this->db->order_by('cdr.id', "DESC");
             $results = $this->db->get();
             //$this->db->where("internal_number", $phone);
@@ -168,7 +174,7 @@ class General_model extends CI_Model {
             $this->db->select('cdr.id, call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('I', 'T'));
+            $this->db->where_in("call_type", array('I', 'T', 'O'));
             $this->db->or_where("unanswered", 'yes');
             $this->db->where("duration", "00:00:00");
             $this->db->order_by('cdr.id', "DESC");
@@ -202,22 +208,27 @@ class General_model extends CI_Model {
         
     }
     
+    //Статистика за день
     function getCallDataForDay($phone, $group) {
         if ($group !== 'admin') {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('IR','IA','I'));
+            $this->db->where_in("call_type", array('IR','IA','I','O'));
             $this->db->where("internal_number", $phone);
             $this->db->where("call_date", date('d/m/Y',now()));
+            $this->db->group_by('call_id');
+            $this->db->group_by('call_type');
             $this->db->order_by('cdr.id', "DESC");
             $results = $this->db->get();
         } else {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('IR','IA','I'));
+            $this->db->where_in("call_type", array('IR','IA','I','O'));
             $this->db->where("call_date", date('d/m/Y',now()));
+            $this->db->group_by('call_id');
+            $this->db->group_by('call_type');
             $this->db->order_by('cdr.id', "DESC");
             $results = $this->db->get();
             //$this->db->where("internal_number", $phone);

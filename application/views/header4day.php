@@ -209,7 +209,10 @@
                             break;
                         case 'Звонок завершен':
                             $(nRow).css('background-color', 'rgb(223, 240, 216)');
-                            break;  
+                            break;
+                        case 'Исходящий':
+                            $(nRow).css('background-color', 'rgb(255,250,205)');
+                            break;
                           
                     }
                     return nRow;
@@ -260,7 +263,8 @@
                                         <li><a href="/auth/phoneDepts"><i class="icon-tasks icon-white"> </i>Телефонные номера</a></li>
                                         <li><a href="/auth/mailsettings"><i class="icon-envelope"> </i>Настройки SMTP сервера</a></li>
                                     </ul>
-                                </li>          
+                                </li>
+                                <li><a href="#" id="restartNodeServer"><i class="icon-repeat"> </i>Перезапуск службы</a></li>
                             <?php } ?>
                             <li class="pull-right"><a href="/auth/logout"><i class="icon-arrow-right icon-white"> </i>Выход</a></li>
 

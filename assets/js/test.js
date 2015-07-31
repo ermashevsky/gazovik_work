@@ -2,6 +2,7 @@ var net = require('net');
 var rest = require('restler');
 var express = require('express');
 var storage = require('node-persist');
+var moment = require('moment');
 var mysql = require('mysql'),
     mysqlUtilities = require('mysql-utilities');
 
@@ -20,8 +21,8 @@ mysqlUtilities.introspection(connection);
 
 connection.connect();
 
-var client = net.connect(6003, '91.196.6.1');
-var client2 = net.connect(6004, '91.196.6.1');
+var client = net.connect(6003, '91.196.6.29');
+var client2 = net.connect(6004, '91.196.6.30');
 var app = express();
 
 // Создаем HTTP-сервер с помощью модуля HTTP, входящего в Node.js.
@@ -138,26 +139,27 @@ client.on('data', function(data) {
     var internal_number = array[2];
     var call_date = array[5]+"/"+array[4]+"/"+year;
     var call_time = array[6]+":"+array[7]+":"+array[8];
+    var timestamp = year+"-"+array[4]+"-"+array[5]+" "+array[6]+":"+array[7]+":"+array[8];
     var duration = array[9]+":"+array[10]+":"+array[11];
     var call_type = array[12];
     var dst = array[13];
     var src = array[16];
-
-
-
+    
+    console.info(timestamp);
+    
     if(call_type === 'O'){
-            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, duration, call_type, dst) ' +
-                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + duration + '", "' + call_type + '", "' + dst + '")';
+            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, timestamp, duration, call_type, dst) ' +
+                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + timestamp + '","' + duration + '", "' + call_type + '", "' + dst + '")';
             connection.query(sql);
     }
     
     if(call_type === 'IR'){
-            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered) ' +
-                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + duration + '", "' + call_type + '", "' + dst + '", "' + src + '","yes")';
+            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, timestamp, duration, call_type, dst, src, unanswered) ' +
+                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + timestamp + '", "' + duration + '", "' + call_type + '", "' + dst + '", "' + src + '","yes")';
             connection.query(sql);
     }else{
-	var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, duration, call_type, dst, src) ' +
-                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + duration + '", "' + call_type +'", "' + dst + '","' + src + '")';
+	var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, timestamp, duration, call_type, dst, src) ' +
+                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + timestamp + '", "' + duration + '", "' + call_type +'", "' + dst + '","' + src + '")';
         connection.query(sql);
 
 	var update = 'update cdr set unanswered = "no" where call_id = "' + call_id + '"';
@@ -166,6 +168,7 @@ client.on('data', function(data) {
 	 }
     if (call_type === 'I') {
         getUnansweredCalls();
+        getUnansweredCallsExternalNumbers();
     }
     
     }); //client block
@@ -183,26 +186,27 @@ client.on('data', function(data) {
     var internal_number = array[2];
     var call_date = array[5]+"/"+array[4]+"/"+year;
     var call_time = array[6]+":"+array[7]+":"+array[8];
+    var timestamp = year+"-"+array[4]+"-"+array[5]+" "+array[6]+":"+array[7]+":"+array[8];
     var duration = array[9]+":"+array[10]+":"+array[11];
     var call_type = array[12];
     var dst = array[13];
     var src = array[16];
 
-
+    console.info(timestamp);
 
     if(call_type === 'O'){
-            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, duration, call_type, dst) ' +
-                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + duration + '", "' + call_type + '", "' + dst + '")';
+            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, timestamp, duration, call_type, dst) ' +
+                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + timestamp + '","' + duration + '", "' + call_type + '", "' + dst + '")';
             connection.query(sql);
     }
     
     if(call_type === 'IR'){
-            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered) ' +
-                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + duration + '", "' + call_type + '", "' + dst + '", "' + src + '","yes")';
+            var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, timestamp, duration, call_type, dst, src, unanswered) ' +
+                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + timestamp + '", "' + duration + '", "' + call_type + '", "' + dst + '", "' + src + '","yes")';
             connection.query(sql);
     }else{
-	var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, duration, call_type, dst, src) ' +
-                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + duration + '", "' + call_type +'", "' + dst + '","' + src + '")';
+	var sql = 'INSERT INTO cdr (call_id, internal_number, call_date, call_time, timestamp, duration, call_type, dst, src) ' +
+                            'VALUES("' + call_id + '","' + internal_number + '", "' + call_date + '", "' + call_time + '", "' + timestamp + '", "' + duration + '", "' + call_type +'", "' + dst + '","' + src + '")';
         connection.query(sql);
 
 	var update = 'update cdr set unanswered = "no" where call_id = "' + call_id + '"';
@@ -213,6 +217,7 @@ client.on('data', function(data) {
          
      if(call_type === 'I') {
         getUnansweredCalls();
+        getUnansweredCallsExternalNumbers();
     }
 
     }); //client block
@@ -237,8 +242,40 @@ function getContactUser(internal_number){
 }
 
 function getUnansweredCalls(){
+    
+    var formated_date_start = moment().format('YYYY-MM-DD 00:00:00');
+    var formated_date_end = moment().subtract(1, 'minutes').format('YYYY-MM-DD H:mm:ss');
+
+    console.info(formated_date_start);
+    console.info(formated_date_end);
+    
     connection.connect(function(err){
-        var sql = "SELECT * FROM  `cdr` inner join `users` on `users`.`phone` = `cdr`.`internal_number` WHERE `cdr`.`unanswered` =  'yes' AND `cdr`.`sent` =  'no' AND `duration` ='00:00:00' AND `cdr`.`call_type` =  'IR'";
+        var sql = "SELECT * FROM  `cdr` inner join `users` on `users`.`phone` = `cdr`.`internal_number` WHERE `cdr`.`unanswered` =  'yes' AND `cdr`.`sent` =  'no' AND `duration` ='00:00:00' AND `cdr`.`call_type` =  'IR' AND `timestamp` BETWEEN  '"+formated_date_start+"' AND  '"+formated_date_end+"'";
+
+        connection.query(sql, function(err, rows, fields) {
+            if (err) return console.log(err);
+                //  you need to end your connection inside here.
+                //connection.end();
+                
+                rows.forEach(function(item) {
+                    sendEmailData2Func(item.id, item.call_id, item.internal_number, item.call_date, item.call_time, item.duration, item.call_type, item.dst, item.src, item.unanswered, item.email);
+                });
+                //socket.emit('getUnansweredCalls',rows);
+                //connection.end();
+        });
+    });
+}
+
+function getUnansweredCallsExternalNumbers(){
+    
+    var formated_date_start = moment().format('YYYY-MM-DD 00:00:00');
+    var formated_date_end = moment().subtract(1, 'minutes').format('YYYY-MM-DD H:mm:ss');
+    //.format('YYYY-MM-DD H:mm:ss');
+    console.info(formated_date_start);
+    console.info(formated_date_end);
+    
+    connection.connect(function(err){
+        var sql = "SELECT * FROM  `cdr` inner join `external_numbers` on `external_numbers`.`external_numbers` = `cdr`.`dst` WHERE `cdr`.`unanswered` =  'yes' AND `cdr`.`sent` =  'no' AND `duration` ='00:00:00' AND `cdr`.`call_type` =  'IR' AND `timestamp` BETWEEN  '"+formated_date_start+"' AND  '"+formated_date_end+"'";
 
         connection.query(sql, function(err, rows, fields) {
             if (err) return console.log(err);

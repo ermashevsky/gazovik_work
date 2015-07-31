@@ -90,10 +90,28 @@ class General extends CI_Controller {
         $this->load->model('general_model');
         $data = $this->general_model->getAllStatisticData();
         $this->load->helper('csv');
-        echo array_to_csv($data, 'callCenterStatBackup_'.date('d-m-Y-H:i:s').'.csv');
+        //echo array_to_csv($data, 'callCenterStatBackup_' . date('d-m-Y-H:i:s') . '.csv');
+        echo $this->convert_to_csv($data, 'callCenterStatBackup_' . date('d-m-Y-H:i:s') . '.csv', ';');
     }
-    
-    function deleteStatisticData(){
+
+    function convert_to_csv($input_array, $output_file_name, $delimiter) {
+        /** open raw memory as file, no need for temp files, be careful not to run out of memory thought */
+        $f = fopen('php://memory', 'w');
+        /** loop through array  */
+        foreach ($input_array as $line) {
+            /** default php csv handler * */
+            fputcsv($f, $line, $delimiter);
+        }
+        /** rewrind the "file" with the csv lines * */
+        fseek($f, 0);
+        /** modify header to be downloadable csv file * */
+        header('Content-Type: application/csv');
+        header('Content-Disposition: attachement; filename="' . $output_file_name . '";');
+        /** Send file to browser for download */
+        fpassthru($f);
+    }
+
+    function deleteStatisticData() {
         $this->load->model('general_model');
         $data = $this->general_model->deleteStatisticData();
         echo json_encode($data);
@@ -180,6 +198,7 @@ class General extends CI_Controller {
 
 
         $mail->AddAddress($email);
+        $mail->AddCC('ermashevsky@dialog64.ru', 'Admin');
         $message = "Вам звонили " . $call_date . " в " . $call_time . " c номера " . $src . " на номер " . $dst . " (внутр.номер " . $internal_number . ")";
         $mail->MsgHTML('Здравствуйте! Вы пропустили входящий звонок.' . $message . " И поэтому Вам на адрес " . $email . " пришло это письмо.");
 
@@ -211,6 +230,11 @@ class General extends CI_Controller {
         $data = $this->general_model->getCallHistory($call_id);
 
         echo json_encode($data);
+    }
+
+    function restartNodeServer() {
+        $output = shell_exec('/home/agent/web/gaz.dialog64.ru/assets/js/restart_node_server.sh');
+        echo json_encode("<pre>" . $output . "</pre>");
     }
 
 }

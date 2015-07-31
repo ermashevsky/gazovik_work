@@ -619,7 +619,7 @@
                                     <li><a href="/auth/mailsettings"><i class="icon-envelope"> </i>Настройки SMTP сервера</a></li>
                                 </ul>
                             </li>          
-
+                            <li><a href="#" id="restartNodeServer"><i class="icon-repeat"> </i>Перезапуск службы</a></li>
                             <li class="pull-right"><a href="/auth/logout"><i class="icon-arrow-right icon-white"> </i>Выход</a></li>
 
                         </ul>
