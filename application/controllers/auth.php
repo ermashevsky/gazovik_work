@@ -68,6 +68,33 @@ class Auth extends CI_Controller {
             $this->load->view('auth/phoneDepts', $data);
         }
     }
+    
+    function subscribe_settings() {
+        $data['title'] = 'Админка - Настройки ежедневной рассылки';
+
+        if (!$this->ion_auth->logged_in()) {
+            //redirect them to the login page
+            redirect('auth/login', 'refresh');
+        } elseif (!$this->ion_auth->is_admin()) {
+            //redirect them to the home page because they must be an administrator to view this
+            redirect($this->config->item('base_url'), 'refresh');
+        } else {
+            //set the flash data error message if there is one
+            $data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
+
+            //list the users
+            $data['user'] = $this->ion_auth->user($this->session->userdata('user_id'))->row();
+            $data['users'] = $this->ion_auth->users()->result();
+            foreach ($data['users'] as $k => $user) {
+                $data['users'][$k]->groups = $this->ion_auth->get_users_groups($user->id)->result();
+            }
+            $this->load->model('general_model');
+            $data['phone_depts'] = $this->general_model->getSubscribeList();
+
+            $this->load->view('auth/header', $data);
+            $this->load->view('auth/subscribe_settings', $data);
+        }
+    }
 
     //log the user in
     function login() {
@@ -438,6 +465,50 @@ class Auth extends CI_Controller {
 //	            $this->load->view('auth/create_user', $data);
 //                        $this->load->view('auth/rightbar');
 //                        $this->load->view('auth/footer');
+        }
+    }
+    
+    //create a new user
+    function addEmailItem() {
+        $data['title'] = "Добавление Email";
+
+        if (!$this->ion_auth->logged_in() || !$this->ion_auth->is_admin()) {
+            redirect('auth', 'refresh');
+        }
+
+        //validate form input
+        $this->form_validation->set_rules('email', 'Email', 'required|xss_clean');
+//        $this->form_validation->set_rules('contactName', 'Наименование контакта', 'required|xss_clean');
+
+        if ($this->form_validation->run() == true) {
+
+            $additional_data = array(
+                'email' => $this->input->post('email'),
+                'contactName' => $this->input->post('contactName'),
+                'status' => 'active',
+            );
+
+            $this->load->model('general_model');
+            $this->general_model->addEmailItem($additional_data);
+
+            $this->session->set_flashdata('message', "Новая запись добавлена");
+            //redirect("auth", 'refresh');
+        } else {
+            ////display the create user form
+            //set the flash data error message if there is one
+            $data['message'] = (validation_errors() ? validation_errors() : ($this->ion_auth->errors() ? $this->ion_auth->errors() : $this->session->flashdata('message')));
+
+            $data['email'] = array('name' => 'email',
+                'id' => 'email',
+                'type' => 'text',
+                'value' => $this->form_validation->set_value('email'),
+            );
+
+            $data['contactName'] = array('name' => 'contactName',
+                'id' => 'contactName',
+                'type' => 'text',
+                'value' => $this->form_validation->set_value('contactName'),
+            );
         }
     }
 

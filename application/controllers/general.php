@@ -85,6 +85,54 @@ class General extends CI_Controller {
         $this->load->model('general_model');
         return $this->general_model->getCallDataForDay($phone, $group);
     }
+    
+    public function getStatisticForMailing() {
+        $this->load->library('PHPMailer');
+        
+        $this->load->model('general_model');
+        $data = $this->general_model->statisticForMailing();
+        
+        if($data === 'send'){
+            
+//            $f = file_get_contents('uploads/csv_file.csv');
+//            $f1 = iconv("UTF-8", "WINDOWS-1251",  $f);
+//            file_put_contents('uploads/csv_file.csv', $f1);
+            
+            
+            $mail = new PHPMailer(true);
+            
+            foreach ($this->getMailSettings() as $settings) {
+            $mail->IsSMTP(); // we are going to use SMTP
+            $mail->SMTPAuth = true; // enabled SMTP authentication
+            $mail->SMTPSecure = "ssl";  // prefix for secure protocol to connect to the server
+
+            $mail->Host = $settings->smtp_host;
+            $mail->Port = $settings->smtp_port;
+            $mail->Username = $settings->smtp_user;
+            $mail->Password = $settings->smtp_pass;
+            $mail->CharSet = 'utf-8';
+            $mail->Subject = 'Ежедневная рассылка статистики';
+            $mail->SetFrom($settings->smtp_user, 'Рассылка статистики');
+        }
+        
+        $email = 'ermashevsky@dialog64.ru';
+        
+        $mail->AddAddress($email);
+        //foreach c адресами 
+        foreach($this->general_model->getActiveItemForMailing() as $values){
+            $mail->AddCC($values->email, $values->contactName);    
+        }
+        
+        
+        $mail->MsgHTML('Здравствуйте! Вы подписаны на рассылку "Звонки за сегодня". Данные в приложенном файле.');
+        $mail->AddAttachment('uploads/csv_file.csv', 'Статистика за день.csv'); 
+
+        $mail->Send();
+        $file = 'uploads/csv_file.csv';
+        
+        unlink($file);
+        }
+    }
 
     function getAllStatisticData() {
         $this->load->model('general_model');
@@ -92,6 +140,15 @@ class General extends CI_Controller {
         $this->load->helper('csv');
         //echo array_to_csv($data, 'callCenterStatBackup_' . date('d-m-Y-H:i:s') . '.csv');
         echo $this->convert_to_csv($data, 'callCenterStatBackup_' . date('d-m-Y-H:i:s') . '.csv', ';');
+    }
+    
+    function updateStatus(){
+        $id = $this->input->post('id');
+        $status = $this->input->post('status');
+        
+        $this->load->model('general_model');
+        $this->general_model->updateStatus($id, $status);
+        
     }
 
     function convert_to_csv($input_array, $output_file_name, $delimiter) {

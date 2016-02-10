@@ -253,7 +253,7 @@
 
 
             /* API method to get paging information */
-            $.fn.dataTableExt.oApi.fnPagingInfo = function(oSettings)
+            $.fn.dataTableExt.oApi.fnPagingInfo = function (oSettings)
             {
                 return {
                     "iStart": oSettings._iDisplayStart,
@@ -272,9 +272,9 @@
             /* Bootstrap style pagination control */
             $.extend($.fn.dataTableExt.oPagination, {
                 "bootstrap": {
-                    "fnInit": function(oSettings, nPaging, fnDraw) {
+                    "fnInit": function (oSettings, nPaging, fnDraw) {
                         var oLang = oSettings.oLanguage.oPaginate;
-                        var fnClickHandler = function(e) {
+                        var fnClickHandler = function (e) {
                             e.preventDefault();
                             if (oSettings.oApi._fnPageChange(oSettings, e.data.action)) {
                                 fnDraw(oSettings);
@@ -291,7 +291,7 @@
                         $(els[0]).bind('click.DT', {action: "previous"}, fnClickHandler);
                         $(els[1]).bind('click.DT', {action: "next"}, fnClickHandler);
                     },
-                    "fnUpdate": function(oSettings, fnDraw) {
+                    "fnUpdate": function (oSettings, fnDraw) {
                         var iListLength = 5;
                         var oPaging = oSettings.oInstance.fnPagingInfo();
                         var an = oSettings.aanFeatures.p;
@@ -321,7 +321,7 @@
                                 sClass = (j == oPaging.iPage + 1) ? 'class="active"' : '';
                                 $('<li ' + sClass + '><a href="#">' + j + '</a></li>')
                                         .insertBefore($('li:last', an[i])[0])
-                                        .bind('click', function(e) {
+                                        .bind('click', function (e) {
                                             e.preventDefault();
                                             oSettings._iDisplayStart = (parseInt($('a', this).text(), 10) - 1) * oPaging.iLength;
                                             fnDraw(oSettings);
@@ -385,15 +385,15 @@
 
 
             /* Table initialisation */
-            $(document).ready(function() {
+            $(document).ready(function () {
 
                 var url = window.location.href;
 
                 // Will also work for relative and absolute hrefs
-                $('ul.nav li a').filter(function() {
+                $('ul.nav li a').filter(function () {
                     return this.href === url;
                 }).addClass('better-active');
-                
+
                 $('#user_list').dataTable({
                     "sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
                     "sPaginationType": "bootstrap",
@@ -401,8 +401,8 @@
                         "sUrl": "/assets/js/dataTables.russian.txt"
                     }
                 });
-            
-            
+
+
                 $('#phoneDepts_list').dataTable({
                     "sDom": "<'row'<'span6'l><'span6'f>r>t<'row'<'span6'i><'span6'p>>",
                     "sPaginationType": "bootstrap",
@@ -420,7 +420,7 @@
                     type: "POST",
                     url: "<?php echo site_url('auth/create_user'); ?>",
                     data: form,
-                    success: function(data) {
+                    success: function (data) {
                         $(".modal.fade.bs-example-modal-sm").modal('hide');
                     }
 
@@ -428,15 +428,15 @@
                 event.preventDefault();
                 return false;  //stop the actual form post !important!
             }
-            
-            function updateSMTPParameters(){
-                    form = $("#smtp_form").serialize();
+
+            function updateSMTPParameters() {
+                form = $("#smtp_form").serialize();
 
                 $.ajax({
                     type: "POST",
                     url: "<?php echo site_url('auth/updateSmtpParameters'); ?>",
                     data: form,
-                    success: function(data) {
+                    success: function (data) {
                         window.location.reload();
                     }
 
@@ -452,7 +452,7 @@
                     type: "POST",
                     url: "<?php echo site_url('auth/createPhoneDeptsRecord'); ?>",
                     data: form,
-                    success: function(data) {
+                    success: function (data) {
                         $(".modal.fade.bs-example-modal-sm").modal('hide');
                         window.location.reload();
                     }
@@ -461,7 +461,44 @@
                 event.preventDefault();
                 return false;  //stop the actual form post !important!
             }
-            
+
+            function addEmailItem() {
+                form = $("#addEmailItemForm").serialize();
+
+                $.ajax({
+                    type: "POST",
+                    url: "<?php echo site_url('auth/addEmailItem'); ?>",
+                    data: form,
+                    success: function (data) {
+                        $(".modal.fade.bs-example-modal-sm").modal('hide');
+                        window.location.reload();
+                    }
+
+                });
+                event.preventDefault();
+                return false;  //stop the actual form post !important!
+            }
+
+            function updateStatus(id, status) {
+
+                var newstatus = "";
+
+                if (status === 'active') {
+                    newstatus = 'deactive';
+                }
+
+                if (status === 'deactive') {
+                    newstatus = 'active';
+                }
+
+                $.post('<?php echo site_url('/general/updateStatus'); ?>', {'id': id, 'status': newstatus},
+                function (data) {
+                    window.location.reload();
+                });
+
+
+            }
+
             function deletePhoneRecord(id) {
                 bootbox.dialog({
                     message: "Вы действительно хотите удалить запись?",
@@ -470,7 +507,7 @@
                         success: {
                             label: "Да",
                             className: "btn-success btn-small",
-                            callback: function() {
+                            callback: function () {
                                 clearRecord(id);
                                 window.location.reload();
                             }
@@ -478,21 +515,21 @@
                         danger: {
                             label: "Нет",
                             className: "btn-danger btn-small",
-                            callback: function() {
+                            callback: function () {
                                 bootbox.hideAll();
-                                
+
                             }
                         }
                     }
                 });
             }
-            function clearRecord(id){
+            function clearRecord(id) {
                 $.post('<?php echo site_url('/general/deletePhoneDeptsRecord'); ?>', {'id': id},
-                function(data) {
-                    
+                function (data) {
+
                 });
             }
-            
+
             function deleteUserRecord(id) {
                 bootbox.dialog({
                     message: "Вы действительно хотите удалить пользователя?",
@@ -501,7 +538,7 @@
                         success: {
                             label: "Да",
                             className: "btn-success btn-small",
-                            callback: function() {
+                            callback: function () {
                                 clearUserRecord(id);
                                 window.location.reload();
                             }
@@ -509,80 +546,80 @@
                         danger: {
                             label: "Нет",
                             className: "btn-danger btn-small",
-                            callback: function() {
+                            callback: function () {
                                 bootbox.hideAll();
-                                
+
                             }
                         }
                     }
                 });
             }
-            function clearUserRecord(id){
+            function clearUserRecord(id) {
                 $.post('<?php echo site_url('/general/delete_user'); ?>', {'id': id},
-                function(data) {
-                    
+                function (data) {
+
                 });
             }
-            
-            function editPhoneRecord(id){
+
+            function editPhoneRecord(id) {
                 $.post('<?php echo site_url('/general/getPhoneDeptsRecord'); ?>', {'id': id},
-                function(data) {
-                    
-                    $.each(data,function(i,val){
-                        
+                function (data) {
+
+                    $.each(data, function (i, val) {
+
                         var html = '<form class="form-horizontal" id="editPhoneDeptsForm">';
-                            html+='<fieldset>';
-                            html+='<div class="control-group">';
-                            html+='<label class="control-label" for="edit_external_number">Номер телефона</label>';
-                            html+='<div class="controls">';
-                            html+='<input id="id" name="id" type="hidden" value="'+data[i].id+'" />';
-                            html+='<input id="edit_external_number" name="edit_external_number" type="text" placeholder="Введите номер телефона" class="input-xlarge" value="'+data[i].external_number+'"required="">';
-                            html+='</div>';
-                            html+='</div>';
-                            html+='<div class="control-group">';
-                            html+='<label class="control-label" for="edit_contactName">Наименование контакта</label>';
-                            html+='<div class="controls">';
-                            html+='<input id="edit_contactName" name="edit_contactName" type="text" placeholder="Введите наименование контакта" class="input-xlarge" value="'+data[i].contactName+'">';
-                            html+='</div>';
-                            html+='</div>';
-                            html+='</fieldset>';
-                            html+='</form>';
-                            
-                            
-                    bootbox.dialog({
-                    message: html,
-                    title: "Редактирование записи",
-                    buttons: {
-                        success: {
-                            label: "Сохранить",
-                            className: "btn-success btn-small",
-                            callback: function() {
-                                updateRecord();
-                                window.location.reload();
+                        html += '<fieldset>';
+                        html += '<div class="control-group">';
+                        html += '<label class="control-label" for="edit_external_number">Номер телефона</label>';
+                        html += '<div class="controls">';
+                        html += '<input id="id" name="id" type="hidden" value="' + data[i].id + '" />';
+                        html += '<input id="edit_external_number" name="edit_external_number" type="text" placeholder="Введите номер телефона" class="input-xlarge" value="' + data[i].external_number + '"required="">';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '<div class="control-group">';
+                        html += '<label class="control-label" for="edit_contactName">Наименование контакта</label>';
+                        html += '<div class="controls">';
+                        html += '<input id="edit_contactName" name="edit_contactName" type="text" placeholder="Введите наименование контакта" class="input-xlarge" value="' + data[i].contactName + '">';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</fieldset>';
+                        html += '</form>';
+
+
+                        bootbox.dialog({
+                            message: html,
+                            title: "Редактирование записи",
+                            buttons: {
+                                success: {
+                                    label: "Сохранить",
+                                    className: "btn-success btn-small",
+                                    callback: function () {
+                                        updateRecord();
+                                        window.location.reload();
+                                    }
+                                },
+                                danger: {
+                                    label: "Отмена",
+                                    className: "btn-danger btn-small",
+                                    callback: function () {
+                                        bootbox.hideAll();
+
+                                    }
+                                }
                             }
-                        },
-                        danger: {
-                            label: "Отмена",
-                            className: "btn-danger btn-small",
-                            callback: function() {
-                                bootbox.hideAll();
-                                
-                            }
-                        }
-                    }
-                });
+                        });
                     });
-                },'json');
+                }, 'json');
             }
-            
-            function updateRecord(){
+
+            function updateRecord() {
                 form = $("#editPhoneDeptsForm").serialize();
 
                 $.ajax({
                     type: "POST",
                     url: "<?php echo site_url('general/updatePhoneDeptsRecord'); ?>",
                     data: form,
-                    success: function(data) {
+                    success: function (data) {
 
                     }
 
@@ -590,7 +627,7 @@
                 event.preventDefault();
                 return false;  //stop the actual form post !important!
             }
-            
+
         </script>
 
     </head>
@@ -617,6 +654,7 @@
                                     <li><a href="/auth/"><i class="icon-user icon-white"> </i>Пользователи</a></li>
                                     <li><a href="/auth/phoneDepts"><i class="icon-tasks icon-white"> </i>Телефонные номера</a></li>
                                     <li><a href="/auth/mailsettings"><i class="icon-envelope"> </i>Настройки SMTP сервера</a></li>
+                                    <li><a href="/auth/subscribe_settings"><i class="icon-inbox"> </i>Настройки ежедневной рассылки</a></li>
                                 </ul>
                             </li>          
                             <li><a href="#" id="restartNodeServer"><i class="icon-repeat"> </i>Перезапуск службы</a></li>

@@ -13,7 +13,7 @@
  */
 defined('BASEPATH') OR exit('No direct script access allowed');
 ini_set('display_errors', 1);
-ini_set ('memory_limit' , '2048M');
+ini_set('memory_limit', '2048M');
 error_reporting(E_ALL);
 
 /**
@@ -55,7 +55,7 @@ class General_model extends CI_Model {
                 return "Входящий переведенный";
         }
     }
-    
+
     function transCode2($code) {
         switch ($code) {
             case 'IR':
@@ -72,7 +72,7 @@ class General_model extends CI_Model {
                 return "Переведенный завершен";
         }
     }
-    
+
     function transCode3($code) {
         switch ($code) {
             case 'IR':
@@ -105,9 +105,9 @@ class General_model extends CI_Model {
         $this->db->from('cdr');
         $this->db->where("call_id", $call_id);
         $results = $this->db->get();
-        
+
         $data = array();
-        
+
         if (0 < $results->num_rows) {
             foreach ($results->result() as $row) {
                 $general = new General_model();
@@ -124,14 +124,14 @@ class General_model extends CI_Model {
         }
         return $data;
     }
-    
+
     //Общая статистика
     function getCallDataForTable($phone, $group) {
         if ($group !== 'admin') {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('I', 'T', 'IT','O'));
+            $this->db->where_in("call_type", array('I', 'T', 'IT', 'O'));
             $this->db->where("internal_number", $phone);
             $this->db->or_where("unanswered", 'yes');
             $this->db->where("internal_number", $phone);
@@ -160,8 +160,8 @@ class General_model extends CI_Model {
             $output = '{ "aaData": [';
             $n = 1;
             foreach ($results->result() as $row) {
-                if(strlen($row->dst) > 4){
-                $output .= '["' . $n++ . '","' . $row->internal_number . '","' . $row->call_date . '","' . $row->call_time . '","' . $row->duration . '","' . $this->transCode($row->call_type) . '","' . $row->src . '","' . $row->dst . $this->formatString($row->call_id, $row->call_type) . '","' . $row->contactName . '"],';
+                if (strlen($row->dst) > 4) {
+                    $output .= '["' . $n++ . '","' . $row->internal_number . '","' . $row->call_date . '","' . $row->call_time . '","' . $row->duration . '","' . $this->transCode($row->call_type) . '","' . $row->src . '","' . $row->dst . $this->formatString($row->call_id, $row->call_type) . '","' . $row->contactName . '"],';
                 }
             }
             $output = substr_replace($output, "", -1);
@@ -169,22 +169,22 @@ class General_model extends CI_Model {
         }
         echo $output;
     }
-    
-    function getAllStatisticData(){
-            $this->db->select('cdr.id, call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
-            $this->db->from('cdr');
-            $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('I', 'T', 'O'));
-            $this->db->or_where("unanswered", 'yes');
-            $this->db->where("duration", "00:00:00");
-            $this->db->order_by('cdr.id', "DESC");
-            $results = $this->db->get();
-            $data = array();
-            $general = array();
-            
+
+    function getAllStatisticData() {
+        $this->db->select('cdr.id, call_id, internal_number, call_date, call_time, duration, call_type, dst, src, unanswered, contactName');
+        $this->db->from('cdr');
+        $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
+        $this->db->where_in("call_type", array('I', 'T', 'O'));
+        $this->db->or_where("unanswered", 'yes');
+        $this->db->where("duration", "00:00:00");
+        $this->db->order_by('cdr.id', "DESC");
+        $results = $this->db->get();
+        $data = array();
+        $general = array();
+
         if (0 < $results->num_rows) {
             foreach ($results->result() as $row) {
-                
+
                 $general['id'] = $row->id;
                 $general['call_id'] = $row->call_id;
                 $general['internal_number'] = $row->internal_number;
@@ -200,23 +200,22 @@ class General_model extends CI_Model {
         }
         return $data;
     }
-    
-    function deleteStatisticData(){
-        
-        $this->db->where_not_in('call_date', date("d/m/Y",  now()));
+
+    function deleteStatisticData() {
+
+        $this->db->where_not_in('call_date', date("d/m/Y", now()));
         $this->db->delete('cdr');
-        
     }
-    
+
     //Статистика за день
     function getCallDataForDay($phone, $group) {
         if ($group !== 'admin') {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('IR','IA','I','O'));
+            $this->db->where_in("call_type", array('IR', 'IA', 'I', 'O'));
             $this->db->where("internal_number", $phone);
-            $this->db->where("call_date", date('d/m/Y',now()));
+            $this->db->where("call_date", date('d/m/Y', now()));
             $this->db->group_by('call_id');
             $this->db->group_by('call_type');
             $this->db->order_by('cdr.id', "DESC");
@@ -225,8 +224,8 @@ class General_model extends CI_Model {
             $this->db->select('call_id, internal_number, call_date, call_time, duration, call_type, dst, src, contactName');
             $this->db->from('cdr');
             $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
-            $this->db->where_in("call_type", array('IR','IA','I','O'));
-            $this->db->where("call_date", date('d/m/Y',now()));
+            $this->db->where_in("call_type", array('IR', 'IA', 'I', 'O'));
+            $this->db->where("call_date", date('d/m/Y', now()));
             $this->db->group_by('call_id');
             $this->db->group_by('call_type');
             $this->db->order_by('cdr.id', "DESC");
@@ -240,14 +239,75 @@ class General_model extends CI_Model {
             $output = '{ "aaData": [';
             $n = 1;
             foreach ($results->result() as $row) {
-                if(strlen($row->dst) > 4){
-                $output .= '["' . $n++ . '","' . $row->internal_number . '","' . $row->call_date . '","' . $row->call_time . '","' . $row->duration . '","' . $this->transCode3($row->call_type) . '","' . $row->src . '","' . $row->dst . $this->formatString($row->call_id, $row->call_type) . '","' . $row->contactName . '"],';
+                if (strlen($row->dst) > 4) {
+                    $output .= '["' . $n++ . '","' . $row->internal_number . '","' . $row->call_date . '","' . $row->call_time . '","' . $row->duration . '","' . $this->transCode3($row->call_type) . '","' . $row->src . '","' . $row->dst . $this->formatString($row->call_id, $row->call_type) . '","' . $row->contactName . '"],';
                 }
             }
             $output = substr_replace($output, "", -1);
             $output .= '] }';
         }
         echo $output;
+    }
+
+    function statisticForMailing() {
+        $this->db->select('cdr.id, call_id, internal_number, call_date, call_time, duration, call_type, dst, src, contactName');
+        $this->db->from('cdr');
+        $this->db->join('contactGroup', 'contactGroup.external_number = cdr.dst', 'left');
+        $this->db->where_in("call_type", array('I', 'T', 'O'));
+        $this->db->where("call_date", date('d/m/Y', now()));
+        $this->db->group_by('call_id');
+        $this->db->group_by('call_type');
+        $this->db->order_by('cdr.id', "DESC");
+        $results = $this->db->get();
+
+        $file = 'uploads/csv_file.csv';
+        $n = 1;
+        $data = array();
+        $general = array();
+        
+        if (0 < $results->num_rows) {
+
+            foreach ($results->result() as $row) {
+                if (strlen($row->dst) > 4) {
+
+
+                    $general['call_id'] = $n++;
+                    $general['internal_number'] = $row->internal_number;
+                    $general['call_date'] = $row->call_date;
+                    $general['call_time'] = $row->call_time;
+                    $general['duration'] = $row->duration;
+                    $general['call_type'] = $this->transCode2($row->call_type);
+                    $general['src'] = $row->src;
+                    $general['dst'] = $row->dst;
+                    $general['contactName'] = $row->contactName;
+
+                    $data[$row->id] = $general;
+                }
+            }
+        }
+
+        $fp = fopen($file, 'w');
+
+        $list = array( "#"=>"#",
+            "Внутренний номер"=>"Внутренний номер",
+            "Дата"=>"Дата",
+            "Время"=>"Время",
+            "Продолжительность"=>"Продолжительность",
+            "Тип звонка"=>"Тип звонка",
+            "Вызывающая сторона"=>"Вызывающая сторона",
+            "Принимающая сторона"=>"Принимающая сторона",
+            "Контакт"=>"Контакт",);
+        
+        // display field/column names as first row 
+        fputcsv($fp, array_keys($list), ';', '"');
+
+        foreach ($data as $fields) {
+            fputcsv($fp, $fields,';','"');
+        }
+
+        fclose($fp);
+
+        return 'send';
     }
 
     function getContactGroup($external_number) {
@@ -304,6 +364,57 @@ class General_model extends CI_Model {
         return $data;
     }
 
+    function getSubscribeList() {
+        $this->db->select('id, contactName, email, status');
+        $this->db->from('subscribe_settings');
+        $results = $this->db->get();
+
+        $data = array();
+        if (0 < $results->num_rows) {
+
+            foreach ($results->result() as $row) {
+                $general = new General_model();
+                $general->id = $row->id;
+                $general->email = $row->email;
+                $general->contactName = $row->contactName;
+                $general->status = $row->status;
+                $data[$general->id] = $general;
+            }
+        }
+        return $data;
+    }
+    
+    function getActiveItemForMailing(){
+        $this->db->select('id, contactName, email, status');
+        $this->db->from('subscribe_settings');
+        $this->db->where('status','active');
+        $results = $this->db->get();
+
+        $data = array();
+        if (0 < $results->num_rows) {
+
+            foreach ($results->result() as $row) {
+                $general = new General_model();
+                $general->id = $row->id;
+                $general->email = $row->email;
+                $general->contactName = $row->contactName;
+                $general->status = $row->status;
+                $data[$general->id] = $general;
+            }
+        }
+        return $data;
+    }
+    
+    function updateStatus($id, $status){
+        
+        $data = array(
+               'status' => $status,
+            );
+
+        $this->db->where('id', $id);
+        $this->db->update('subscribe_settings', $data); 
+    }
+
     function getMailSettings() {
         $this->db->select('*');
         $this->db->from('mailsettings');
@@ -342,6 +453,10 @@ class General_model extends CI_Model {
 
     function insertNewPhoneDeptsData($additional_data) {
         $this->db->insert('contactGroup', $additional_data);
+    }
+
+    function addEmailItem($additional_data) {
+        $this->db->insert('subscribe_settings', $additional_data);
     }
 
     function deletePhoneDeptsRecord($id) {

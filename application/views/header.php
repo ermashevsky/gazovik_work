@@ -334,6 +334,7 @@
                                         <li><a href="/auth/"><i class="icon-user icon-white"> </i>Пользователи</a></li>
                                         <li><a href="/auth/phoneDepts"><i class="icon-tasks icon-white"> </i>Телефонные номера</a></li>
                                         <li><a href="/auth/mailsettings"><i class="icon-envelope"> </i>Настройки SMTP сервера</a></li>
+                                        <li><a href="/auth/subscribe_settings"><i class="icon-inbox"> </i>Настройки ежедневной рассылки</a></li>
                                     </ul>
                                 </li>
                                 <li><a href="#" id="restartNodeServer"><i class="icon-repeat"> </i>Перезапуск службы</a></li>
